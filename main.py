@@ -26,12 +26,13 @@ def clear(frame: ttk.Frame) -> None:
     """Procedure to destroy all the objects in a frame"""
     [i.destroy() for i in frame.winfo_children()]
 
-def encode(value: str) -> str:
+def encrypt(value: str) -> str:
+    """Encrypt a string using the sha256 algorithm"""
     return sha256(value.encode()).hexdigest()
 
 class LoginSignup:
     """First Window where the user can sign up or log in"""
-    def __init__(self, frame:ttk.Frame):
+    def __init__(self, frame: ttk.Frame):
         self.frame = frame
         self.bar_welcome = Bar.Welcome(); self.bar_welcome.add()  # Configure the bottom bar
         self.signUpTk = tk.BooleanVar(value=True)  # Variable to store if signing up or loging in
@@ -55,13 +56,13 @@ class LoginSignup:
         self.passConfirmEntry.grid(row=2, column=1, padx=10, pady=10)
 
         # Button to show password as text instead of *
-        self.showHideButton = ttk.Button(self.inputFrame, text='A', padding=0, command= lambda: self.show_hide_pass(self.passConfirmEntry.cget('show') == '*'))
+        self.showHideButton = ttk.Button(self.inputFrame, text='A', padding=0, command=lambda: self.show_hide_pass(self.passConfirmEntry.cget('show') == '*'))
         self.showHideButton.grid(row=1, column=2, rowspan=3, padx=(0, 10), pady=10, sticky='W')
 
         # Errors if entry not valid
-        self.errorFrame = ttk.Frame(self.frame); self.errorFrame.grid(row=5, column=0, sticky='N', columnspan=2)
+        errorFrame = ttk.Frame(self.frame); errorFrame.grid(row=5, column=0, sticky='N', columnspan=2)
         self.errors = ('Username already exits', 'Username must be 3 characters or longer', 'Password must be 3 characters or longer', "Two passwords don't match", 'Invalid username', 'Incorrect password')
-        self.errorLabels = [ttk.Label(self.errorFrame, text=e, style='warning.TLabel') for e in self.errors]
+        self.errorLabels = [ttk.Label(errorFrame, text=e, style='warning.TLabel') for e in self.errors]
 
         # When Submit button or Enter Key pressed check fields are valid
         ttk.Button(self.frame, text='Submit', command=self.confirm).grid(column=0, row=4, columnspan=2, sticky='N')
@@ -72,7 +73,7 @@ class LoginSignup:
         for errorLabel in self.errorLabels:
             errorLabel.pack_forget()
         if self.signUpTk.get():
-            self.passConfirmLabel.grid(column=0, row=2, sticky='E', padx=(10,0))
+            self.passConfirmLabel.grid(column=0, row=2, sticky='E', padx=(10, 0))
             self.passConfirmEntry.grid(row=2, column=1, padx=10, pady=10)
         else:
             self.passConfirmLabel.grid_forget(); self.passConfirmEntry.grid_forget()
@@ -102,11 +103,11 @@ class LoginSignup:
                 valid = False
             if valid:
                 # If all conditions met then add user to database
-                database.add_user(userName, encode(self.passwordTk.get().lower()))
+                database.add_user(userName, encrypt(self.passwordTk.get().lower()))
         else:  # else if on log in section
             if userName not in current_usernames:  # username doesn't exist
                 self.errorLabels[4].pack(pady=5); valid = False
-            elif database.select(f"SELECT password FROM User WHERE username = ?", [userName])[0][0] != encode(self.passwordTk.get().lower()):
+            elif database.select(f"SELECT password FROM User WHERE username = ?", [userName])[0][0] != encrypt(self.passwordTk.get().lower()):
                 self.errorLabels[5].pack(pady=5); valid = False  # password incorrect
         if valid:  # if no errors encountered
             self.remove()  # remove this window 
@@ -124,6 +125,8 @@ class GameSettings:
         self.frame = frame
         self.bar_user = Bar.User()  # Add user options dropdown to bottom bar
         self.bar_user.add()
+        #Preset difficulty options
+        self.diffs = {'easy': (3, 15, 4), 'normal': (4, 10, 8), 'hard': (6, 8, 10), 'custom': (6, 11, 6)}
 
     def create(self):
         """Procedure to create this window"""
@@ -131,52 +134,49 @@ class GameSettings:
         self.codeLengthTk = tk.IntVar(value=4)
         self.shotsTk = tk.IntVar(value=10)
         self.colorAmountTk = tk.IntVar(value=8)
-        # Options for preset difficulties
-        self.diffs = {'easy': (3, 15, 4), 'normal': (4, 10, 8), 'hard': (6, 8, 10), 'custom': (6, 11, 6)}
-
         # Create difficulty options
-        self.difficultiesFrame = ttk.Labelframe(self.frame, text='Difficulty', borderwidth=5, relief='solid')
-        self.difficultiesFrame.grid(column=0, row=1, padx=10, pady=(10, 10))
+        difficultiesFrame = ttk.Labelframe(self.frame, text='Difficulty', borderwidth=5, relief='solid')
+        difficultiesFrame.grid(column=0, row=1, padx=10, pady=(10, 10))
         self.difficultyTk = tk.StringVar(value='normal')
         for name, num, color in zip(('easy', 'normal', 'hard', 'custom'), range(4), ('green', 'yellow', 'red', 'lightblue')):
-            ttk.Radiobutton(self.difficultiesFrame, text=name, variable=self.difficultyTk, value=name, style=f'{color}.Toolbutton', command=lambda n=name: self.selectDiff(n)).grid(column=num, row=0, padx=(10,0) if num==0 else (0,10) if num==3 else 0, pady=10)
+            ttk.Radiobutton(difficultiesFrame, text=name, variable=self.difficultyTk, value=name, style=f'{color}.Toolbutton', command=lambda n=name: self.selectDiff(n)).grid(column=num, row=0, padx=(10,0) if num==0 else (0,10) if num==3 else 0, pady=10)
 
         # Sliders to show and configure difficulty options
-        self.sliderFrame = ttk.Frame(self.difficultiesFrame); self.sliderFrame.grid(column=0, row=2, columnspan=4)
+        sliderFrame = ttk.Frame(difficultiesFrame); sliderFrame.grid(column=0, row=2, columnspan=4)
         for index, ranges, var, label in zip((0,1,2), ((2, 10), (2,20), (2,10)), (self.codeLengthTk, self.shotsTk, self.colorAmountTk), ('Length', 'Shots', 'Colours')):
-            ttk.Label(self.sliderFrame, text=label).grid(column=0, row=index, sticky='E')
-            ttk.Scale(self.sliderFrame, orient='horizontal', length=300, from_=ranges[0], to=ranges[1], variable=var, cursor='sb_h_double_arrow', command=lambda event, v=var: [v.set(int(round(float(event)+0.01, 0))), self.difficultyTk.set('custom')]).grid(column=1, row=index, padx=10, pady=10)
-            ttk.Label(self.sliderFrame, textvariable=var).grid(column=2, row=index)
+            ttk.Label(sliderFrame, text=label).grid(column=0, row=index, sticky='E')
+            ttk.Scale(sliderFrame, orient='horizontal', length=300, from_=ranges[0], to=ranges[1], variable=var, cursor='sb_h_double_arrow', command=lambda event, v=var: [v.set(int(round(float(event)+0.01, 0))), self.difficultyTk.set('custom')]).grid(column=1, row=index, padx=10, pady=10)
+            ttk.Label(sliderFrame, textvariable=var).grid(column=2, row=index)
 
         # Create mode selection options
-        self.modeFrame = ttk.Labelframe(self.frame, text='Mode', borderwidth=5, relief='solid')
+        modeFrame = ttk.Labelframe(self.frame, text='Mode', borderwidth=5, relief='solid')
         self.modeTk = tk.StringVar(value='classic')
         self.modeDescriptions = {'classic': 'Try and find the code in the least number of shots', 'timed': 'Try and find the code in the shortest time', 'memory': "Same as classic, but you can't see past guesses"}
-        self.modeDescriptionsLabel = ttk.Label(self.modeFrame, justify='center')
-        self.modeDescriptionsLabel.grid(column=0, row=1, columnspan=3, pady=10)
+        modeDescriptionLabel = ttk.Label(modeFrame, justify='center')
+        modeDescriptionLabel.grid(column=0, row=1, columnspan=3, pady=10)
         for id, color, num in zip(('classic', 'timed', 'memory'), ('yellow', 'lightblue', 'red'), range(3)):
-            ttk.Radiobutton(self.modeFrame, text=id, value=id, variable=self.modeTk, style=f'{color}.Toolbutton', command=lambda mdl=self.modeDescriptionsLabel: mdl.configure(text=self.modeDescriptions[self.modeTk.get()])).grid(column=num, row=0, padx=(10,0) if num==0 else (0,10) if num==2 else 0, pady=(5,0))
-        self.modeFrame.grid(column=0, row=3, padx=10, pady=(0, 10))
+            ttk.Radiobutton(modeFrame, text=id, value=id, variable=self.modeTk, style=f'{color}.Toolbutton', command=lambda mdl=modeDescriptionLabel: mdl.configure(text=self.modeDescriptions[self.modeTk.get()])).grid(column=num, row=0, padx=(10,0) if num==0 else (0,10) if num==2 else 0, pady=(5,0))
+        modeFrame.grid(column=0, row=3, padx=10, pady=(0, 10))
         root.update()
-        self.modeDescriptionsLabel['wraplength'] = self.modeFrame.winfo_width()
-        self.modeDescriptionsLabel['text'] = self.modeDescriptions['classic']
+        modeDescriptionLabel['wraplength'] = modeFrame.winfo_width()
+        modeDescriptionLabel['text'] = self.modeDescriptions['classic']
 
         # Add check buttons for duplicate colors allowed and color-blind mode
-        self.checkFrame = ttk.Frame(self.frame)
-        self.checkFrame.grid(column=0, row=4, pady=0)
+        checkFrame = ttk.Frame(self.frame)
+        checkFrame.grid(column=0, row=4, pady=0)
         self.duplicatesAllowed = [True]
-        ttk.Label(self.checkFrame, text='Allow duplicates').grid(column=0, row=0, pady=0)
-        self.duplicatesButton = ttk.Button(self.checkFrame, image=messageImgs['check_true'], padding=0, style='img.TButton', command=lambda: self.checkbutton(self.duplicatesButton, self.duplicatesAllowed))
-        self.duplicatesButton.grid(column=1, row=0, pady=0)
+        ttk.Label(checkFrame, text='Allow duplicates').grid(column=0, row=0, pady=0)
+        duplicatesButton = ttk.Button(checkFrame, image=messageImgs['check_true'], padding=0, style='img.TButton', command=lambda: self.checkbutton(duplicatesButton, self.duplicatesAllowed))
+        duplicatesButton.grid(column=1, row=0, pady=0)
         self.cbMode = [False]
-        ttk.Label(self.checkFrame, text='Colour blind icons').grid(column=0, row=1, pady=0)
-        self.cbButton = ttk.Button(self.checkFrame, image=messageImgs['check_false'], padding=0, style='img.TButton', command=lambda: self.checkbutton(self.cbButton, self.cbMode))
-        self.cbButton.grid(column=1, row=1, pady=0)
+        ttk.Label(checkFrame, text='Colour blind icons').grid(column=0, row=1, pady=0)
+        cbButton = ttk.Button(checkFrame, image=messageImgs['check_false'], padding=0, style='img.TButton', command=lambda: self.checkbutton(cbButton, self.cbMode))
+        cbButton.grid(column=1, row=1, pady=0)
 
         # Add confirm button and bind return key to check settings are valid and go to next screen using self.play() function 
         ttk.Button(self.frame, image=messageImgs['play'], style='img.TButton', padding=0, command=self.play).grid(column=0, row=6)
         root.bind('<Return>', lambda event: self.play())
-        self.errorLabel = ttk.Label(self.frame, text='If duplicates not allowed colors must be >= length', wraplength=self.difficultiesFrame.winfo_width(), style='warning.TLabel', justify='center')
+        self.errorLabel = ttk.Label(self.frame, text='If duplicates not allowed colors must be >= length', wraplength=difficultiesFrame.winfo_width(), style='warning.TLabel', justify='center')
 
     def selectDiff(self, diff:str) -> None:
         """Procedure change sliders to correct position based on difficulty selected"""
@@ -236,16 +236,16 @@ class Game:
         root.update()
 
         # Find the scale so everything fits on the screen and load the images at that scale
-        self.totalHeight = (shots+1)*100 + messageImgs['mastermind'].height()
-        self.totalWidth = 80 + 90*codeLength + int(round((codeLength+0.1)/2, 0))*20 + (int(round((codeLength+0.1)/2, 0))-1)*10
-        self.SCREENHEIGHT = root.winfo_height() - bottomBar.winfo_height()
-        self.SCREENWIDTH = root.winfo_width() - self.infoFrame.winfo_height()
-        self.scale = round(min([(self.SCREENHEIGHT) / (self.totalHeight+135), (self.SCREENWIDTH) / self.totalWidth, 1]), 2)
-        self.colorImgs = load_images(f'Images/{"colorBlind" if self.colorBlind else "colors"}', self.scale)
-        self.boardParts = load_images('Images/board', self.scale)
+        totalHeight = (shots+1)*100 + messageImgs['mastermind'].height()
+        totalWidth = 80 + 90*codeLength + int(round((codeLength+0.1)/2, 0))*20 + (int(round((codeLength+0.1)/2, 0))-1)*10
+        screenHeight = root.winfo_height() - bottomBar.winfo_height()
+        screenWidth = root.winfo_width() - self.infoFrame.winfo_height()
+        scale = round(min([(screenHeight) / (totalHeight+135), (screenWidth) / totalWidth, 1]), 2)
+        self.colorImgs = load_images(f'Images/{"colorBlind" if self.colorBlind else "colors"}', scale)
+        self.boardParts = load_images('Images/board', scale)
 
         # Define some constants to be of use later when creating the window
-        self.spacing = round(10*self.scale, 2)
+        self.spacing = round(10*scale, 2)
         self.colorOrder = ['red', 'orange', 'yellow', 'green', 'blueLight', 'blueDark', 'purple', 'pink', 'white', 'black']
 
         # Generate the code using 2 different algorithms depending on if duplicate colors are allowed
@@ -269,35 +269,35 @@ class Game:
             if not done: root.after(1000, timer)
 
         # Set up past guesses board
-        self.historyFrame = ttk.Frame(self.frame)
-        self.historyFrame.grid(column=0, row=0, sticky='SW')
+        historyFrame = ttk.Frame(self.frame)
+        historyFrame.grid(column=0, row=0, sticky='SW')
         for rw in range(shots-1):  # Make sure all the rows have extra space between them
-            self.historyFrame.rowconfigure(index=rw, minsize=self.boardParts['space_blank'].height() + self.spacing)
+            historyFrame.rowconfigure(index=rw, minsize=self.boardParts['space_blank'].height() + self.spacing)
 
         self.historyColours = [[] for _ in range(shots)]  # 2D array for image labels for past guesses
         self.historyScores = [[] for _ in range(shots)]  # 2D array for image labels for past scores 
         for rw in range(shots):  # Add each row in the past history board
             for col in range(codeLength):  # Create and place each image label in the history board
-                ttk.Label(self.historyFrame, image=self.boardParts['space_blank']).grid(row=rw, column=col, sticky='NW')
-                self.historyColours[-(rw+1)].append(ttk.Label(self.historyFrame, image=self.boardParts['color_blank']))
+                ttk.Label(historyFrame, image=self.boardParts['space_blank']).grid(row=rw, column=col, sticky='NW')
+                self.historyColours[-(rw+1)].append(ttk.Label(historyFrame, image=self.boardParts['color_blank']))
                 self.historyColours[-(rw+1)][-1].grid(row=rw, column=col, pady=(self.spacing*2, 0), padx=(self.spacing*2,0), sticky='NW')
 
             # Create and place the scores labels as well as the background shapes 
-            self.curCol = col + 1
-            ttk.Label(self.historyFrame, image=self.boardParts['mark_leftEnd']).grid(row=rw, column=self.curCol, sticky='NW'); self.curCol += 1
-            self.markCols = int(round((codeLength+0.1)/2, 0))
-            for markCol in range(self.markCols):
-                ttk.Label(self.historyFrame, image=self.boardParts['mark_blankSpaces']).grid(row=rw, column=self.curCol, sticky='NW')
-                self.historyScores[-(rw+1)].append(ttk.Label(self.historyFrame, image=self.boardParts['mark_blank']))
-                self.historyScores[-(rw+1)][-1].grid(row=rw, column=self.curCol, pady=(self.spacing*2, 0), sticky='NW')
-                if markCol < self.markCols-1 or codeLength % 2 == 0:
-                    self.historyScores[-(rw+1)].append(ttk.Label(self.historyFrame, image=self.boardParts['mark_blank']))
-                    self.historyScores[-(rw+1)][-1].grid(column=self.curCol, row=rw, pady=(self.spacing*5, 0), sticky='NW')
-                if markCol < self.markCols-1:
-                    self.curCol += 1
-                    ttk.Label(self.historyFrame, image=self.boardParts['mark_spacer']).grid(row=rw, column=self.curCol, sticky='NW')
-                self.curCol += 1
-            ttk.Label(self.historyFrame, image=self.boardParts['mark_rightEnd']).grid(row=rw, column=self.curCol, sticky='NW')
+            curCol = col + 1
+            ttk.Label(historyFrame, image=self.boardParts['mark_leftEnd']).grid(row=rw, column=curCol, sticky='NW'); curCol += 1
+            markCols = int(round((codeLength+0.1)/2, 0))
+            for markCol in range(markCols):
+                ttk.Label(historyFrame, image=self.boardParts['mark_blankSpaces']).grid(row=rw, column=curCol, sticky='NW')
+                self.historyScores[-(rw+1)].append(ttk.Label(historyFrame, image=self.boardParts['mark_blank']))
+                self.historyScores[-(rw+1)][-1].grid(row=rw, column=curCol, pady=(self.spacing*2, 0), sticky='NW')
+                if markCol < markCols-1 or codeLength % 2 == 0:
+                    self.historyScores[-(rw+1)].append(ttk.Label(historyFrame, image=self.boardParts['mark_blank']))
+                    self.historyScores[-(rw+1)][-1].grid(column=curCol, row=rw, pady=(self.spacing*5, 0), sticky='NW')
+                if markCol < markCols-1:
+                    curCol += 1
+                    ttk.Label(historyFrame, image=self.boardParts['mark_spacer']).grid(row=rw, column=curCol, sticky='NW')
+                curCol += 1
+            ttk.Label(historyFrame, image=self.boardParts['mark_rightEnd']).grid(row=rw, column=curCol, sticky='NW')
 
         # Add spacing between the history board and current guess board
         self.frame.rowconfigure(2, minsize=self.spacing*2)
@@ -319,9 +319,9 @@ class Game:
 
         # Add the confirm button that can be clicked once all the spaces are filled in
         ttk.Label(self.optionsFrame, image=self.boardParts['mark_leftEnd']).grid(column=option+1, row=0, sticky='NW')
-        self.confirmLabel = ttk.Label(self.optionsFrame, image=self.boardParts['space_confirmed'], cursor='center_ptr')
-        self.confirmLabel.bind("<Button-1>", lambda event: self.confirm_choice())
-        self.confirmLabel.grid(column=option+2, row=0)
+        confirmLabel = ttk.Label(self.optionsFrame, image=self.boardParts['space_confirmed'], cursor='center_ptr')
+        confirmLabel.bind("<Button-1>", lambda event: self.confirm_choice())
+        confirmLabel.grid(column=option+2, row=0)
         ttk.Label(self.optionsFrame, image=self.boardParts['mark_rightEnd']).grid(column=option+3, row=0)
 
         # Bind the number keys to the colors, the enter key to the confirm button, and the return key to move the slected space back one
@@ -335,13 +335,13 @@ class Game:
         self.paletteFrame.grid(column=0, row=4, sticky='NW', columnspan=2)
         self.paletteFrame.rowconfigure(index=0, minsize=self.spacing*7)
 
-        self.selectedLabel = ttk.Label(self.paletteFrame, image=self.boardParts['color_selected'])
+        selectedLabel = ttk.Label(self.paletteFrame, image=self.boardParts['color_selected'])
         for color, col in zip(self.colorOrder[:colorAmount], range(colorAmount)):
             c = ttk.Label(self.paletteFrame, image=self.colorImgs[color], cursor='tcross')
             c.bind("<Button-1>", lambda event, c=color: self.color_selected(c))
             # Add an outline around the color label when the mouse is over it
-            c.bind("<Enter>", lambda event, c=col: self.selectedLabel.grid(column=c, row=0, columnspan=2, sticky='W'))
-            c.bind("<Leave>", lambda event: self.selectedLabel.grid_forget())
+            c.bind("<Enter>", lambda event, c=col: selectedLabel.grid(column=c, row=0, columnspan=2, sticky='W'))
+            c.bind("<Leave>", lambda event: selectedLabel.grid_forget())
             c.grid(column=col, row=0, padx=(self.spacing, 0) if col != colorAmount-1 else self.spacing)
 
         self.space_selected(0)  # Set the selected space to the first space
@@ -447,8 +447,8 @@ class Table:
     def create(self):
         """Procedure to create this window"""
         root.state('normal')  # Set the window to not full screen mode
-        self.tableFrame = ttk.Labelframe(self.frame, text='Scores', borderwidth=5, relief='solid')
-        self.tableFrame.grid(column=1, row=0, sticky='N', padx=(0, 10))
+        tableFrame = ttk.Labelframe(self.frame, text='Scores', borderwidth=5, relief='solid')
+        tableFrame.grid(column=1, row=0, sticky='N', padx=(0, 10))
         # Get all past scores from database with same settings as last game
         self.data = database.select(f"SELECT * FROM Score WHERE mode = ? AND difficulty = ?;", [mode, difficulty])
         # Get score from game just played, and sort by score ascending using insertion sort
@@ -456,7 +456,7 @@ class Table:
         self.data = AHsa.insertion_sort(self.data, lambda l: l[3], False)
 
         # Create table based on tkinter's treeview widget
-        self.tree = ttk.Treeview(self.tableFrame, columns=('username', 'score', 'date', 'time'), show='headings', displaycolumns='# all', selectmode='none', height=10)
+        self.tree = ttk.Treeview(tableFrame, columns=('username', 'score', 'date', 'time'), show='headings', displaycolumns='# all', selectmode='none', height=10)
         for i, h in enumerate(('username', 'score', 'date', 'time')):
             self.tree.heading(i, text=h, anchor=tk.W)
             self.tree.column(i, stretch=True, width=400 if i == 0 else 200)
@@ -464,22 +464,22 @@ class Table:
         self.tree.tag_configure('prev', background=darkBlue)
 
         # Create a scrollbar
-        self.scrollbar = ttk.Scrollbar(self.tableFrame, orient='vertical', command=self.tree.yview)
+        self.scrollbar = ttk.Scrollbar(tableFrame, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscroll=self.scrollbar.set)
 
         # filers to choose a difficulty and mode
-        self.filterFrame = ttk.Labelframe(self.frame, text='Filter', borderwidth=5, relief='solid')
-        self.filterFrame.grid(column=0, row=0, padx=10, sticky='ns')
-        ttk.Label(self.filterFrame, text='Difficulty', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=0, sticky='ew')
-        self.diffs = ['easy', 'normal', 'hard', 'custom']
+        filterFrame = ttk.Labelframe(self.frame, text='Filter', borderwidth=5, relief='solid')
+        filterFrame.grid(column=0, row=0, padx=10, sticky='ns')
+        ttk.Label(filterFrame, text='Difficulty', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=0, sticky='ew')
+        diffs = ['easy', 'normal', 'hard', 'custom']
         self.diff = tk.StringVar(value=difficulty)
         for i, color in enumerate(('green', 'yellow', 'red', 'lightblue')):
-            ttk.Radiobutton(self.filterFrame, value=self.diffs[i], variable=self.diff, text=self.diffs[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=1+i, pady=(5,0), sticky='W')
-        ttk.Label(self.filterFrame, text='Mode', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=5, pady=(10, 0), sticky='ew')
-        self.modes = ['classic', 'timed', 'memory']
+            ttk.Radiobutton(filterFrame, value=diffs[i], variable=self.diff, text=diffs[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=1+i, pady=(5,0), sticky='W')
+        ttk.Label(filterFrame, text='Mode', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=5, pady=(10, 0), sticky='ew')
+        modes = ['classic', 'timed', 'memory']
         self.mode = tk.StringVar(value=mode)
         for i, color in enumerate(('yellow', 'red', 'lightblue')):
-            ttk.Radiobutton(self.filterFrame, value=self.modes[i], variable=self.mode, text=self.modes[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=6+i, pady=(5, 0), sticky='W')
+            ttk.Radiobutton(filterFrame, value=modes[i], variable=self.mode, text=modes[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=6+i, pady=(5, 0), sticky='W')
 
         self.addItems()  # Add initial data to the table
 
@@ -525,7 +525,7 @@ class Bar(ttk.Frame):
             """Method to log the user out after that option is selected"""
             global window, done
             # Remove the password change window if it was present
-            self.passChangeFrame.grid_forget();
+            self.passChangeFrame.grid_forget()
             window.frame.grid(row=1, column=0, sticky='n')
             # Go back to the login / signup screen
             window.remove(); done = True
@@ -539,7 +539,7 @@ class Bar(ttk.Frame):
                 [i.pack_forget() for i in self.errorFrame.winfo_children()]  # Remove current errors
                 if self.passEntry.get() == self.confirmEntry.get():  # Check that the 2 passwords match
                     if len(self.passEntry.get()) >= 3:  # Check that password has at least 3 characters
-                        database.execute(f"UPDATE user SET password = ? WHERE username = ?;", [encode(self.passEntry.get()), userName])
+                        database.execute(f"UPDATE user SET password = ? WHERE username = ?;", [encrypt(self.passEntry.get()), userName])
                         self.passChangeFrame.grid_forget(); window.frame.grid(row=1, column=0, sticky='n')
                 else:  # Add error labels if necessary
                     ttk.Label(self.errorFrame, text="Two passwords don't match", style='warning.TLabel').pack(pady=5)
@@ -563,9 +563,9 @@ class Bar(ttk.Frame):
             self.confirmEntry = ttk.Entry(self.inputFrame, font=('QuinqueFive', 20), show='*'); self.confirmEntry.grid(column=1, row=2, sticky='w', padx=10, pady=(5, 10))
             self.showHideButton = ttk.Button(self.inputFrame, text='A', command=show_hide, padding=0); self.showHideButton.grid(column=2, row=0, rowspan=3, sticky='w', pady=10, padx=(0, 10))
             # Add Confirm and Cancel buttons
-            self.buttonFrame = ttk.Frame(self.passChangeFrame); self.buttonFrame.grid(column=0, row=1)
-            ttk.Button(self.buttonFrame, text='Cancel', command= lambda: [self.passChangeFrame.grid_forget(), window.frame.grid(row=1, column=0, sticky='n')]).grid(column=0, row=0, sticky='w')
-            ttk.Button(self.buttonFrame, text='Submit', command=confirm).grid(column=1, row=0, sticky='e')
+            buttonFrame = ttk.Frame(self.passChangeFrame); buttonFrame.grid(column=0, row=1)
+            ttk.Button(buttonFrame, text='Cancel', command= lambda: [self.passChangeFrame.grid_forget(), window.frame.grid(row=1, column=0, sticky='n')]).grid(column=0, row=0, sticky='w')
+            ttk.Button(buttonFrame, text='Submit', command=confirm).grid(column=1, row=0, sticky='e')
             self.errorFrame = ttk.Frame(self.passChangeFrame); self.errorFrame.grid(column=0, row=2, pady=10)
 
         def delete_account(self):
@@ -590,7 +590,7 @@ class Bar(ttk.Frame):
         remove = lambda self: self.button.grid_forget()  # Remove this button
 
     class Finish:
-        'Button on bottom bar to finish game'
+        """Button on bottom bar to finish game"""
         def __init__(self) -> None:
             self.button = ttk.Button(bottomBar, text='Finnish', style='dark.TButton', command=self.activate)
         def activate(self):
@@ -613,15 +613,15 @@ messageImgs = load_images('Images/messages', 0.5)  # Load some images like the m
 mainStyle = ttk.Style(); mainStyle.theme_use('classic')
 mainStyle.theme_settings('classic', {
     '.': {
-        'configure': {'font': ('QuinqueFive', 20), 'foreground': fgYellow, 'background': bgBlue, 'borderwidth': 0, 'relief': 'solid', 'highlightthickness':0} },
+        'configure': {'font': ('QuinqueFive', 20), 'foreground': fgYellow, 'background': bgBlue, 'borderwidth': 0, 'relief': 'solid', 'highlightthickness': 0}},
     'dark.TFrame': {
         'configure': {'background': darkBlue}},
     'Toolbutton': {
         'configure': {'background': bgBlue, 'activebackground': darkBlue, 'borderwidth': 0, 'padding': (20, 10, 20, 10)},
-        'map': {'background': [('selected', darkBlue), ('active',darkBlue), ('!selected', bgBlue)]} },
+        'map': {'background': [('selected', darkBlue), ('active', darkBlue), ('!selected', bgBlue)]}},
     'TEntry': {
         'configure': {'fieldbackground': darkBlue, 'insertcolor': fgYellow, 'insertwidth': 5, 'highlightthickness': 5, 'selectbackground': fgYellow, 'selectforeground': darkBlue, 'selectborderwidth': 0},
-        'map': {'highlightcolor': [('focus', fgYellow), ('!focus', '#000000')]} },
+        'map': {'highlightcolor': [('focus', fgYellow), ('!focus', '#000000')]}},
     'TButton': {
         'configure': {'shiftrelief': 5},
         'map': {'background': [('active', darkBlue)]}},
@@ -653,8 +653,8 @@ mainStyle.layout(
     'TRadiobutton',
     [('Radiobutton.padding',
     {'sticky': 'nswe',
-    'children': [('custom.indicator', {'side': 'left', 'sticky': ''}),
-                    ('Radiobutton.label', {'side': 'left', 'sticky': 'nsew'})]})])
+     'children': [('custom.indicator', {'side': 'left', 'sticky': ''}),
+                  ('Radiobutton.label', {'side': 'left', 'sticky': 'nsew'})]})])
 
 for hex, color in zip(('#ff0000', fgYellow, '#00ff00', '#2ad4ff'), ('red', 'yellow', 'green', 'lightblue')):
     mainStyle.configure(f'{color}.Toolbutton', foreground=hex)
