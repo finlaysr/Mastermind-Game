@@ -9,12 +9,12 @@ from ctypes import windll
 import Modules.AHstandardAlgorythims as AHsa
 import Modules.databaseFunctions as DBf
 
-def load_images(dirPath: str, scale: int | float = 1) -> dict[str, ImageTk.PhotoImage]:
+def load_images(dir_pass: str, scale: int | float = 1) -> dict[str, ImageTk.PhotoImage]:
     """Function to load images from a folder to a dictionary"""
     imgs: dict[str, ImageTk.PhotoImage] = {}
     # Loop for every image in the folder
-    for filename in filter(lambda f: f[f.find('.'):] == '.png', listdir(dirPath)):
-        with Image.open(f'{dirPath}/{filename}') as img:
+    for filename in filter(lambda f: f[f.find('.'):] == '.png', listdir(dir_pass)):
+        with Image.open(f'{dir_pass}/{filename}') as img:
             # Resize the image to the specified scale
             img = img.resize((int(img.size[0]*scale), int(img.size[1]*scale)))
             # Find the file name without the .png extension
@@ -34,7 +34,7 @@ class LoginSignup:
     """First Window where the user can sign up or log in"""
     def __init__(self, frame: ttk.Frame):
         self.frame = frame
-        self.bar_welcome = Bar.Welcome(); self.bar_welcome.add()  # Configure the bottom bar
+        self.bar_welcome = Bar.Welcome(); self.bar_welcome.add(col=1, pady=10)  # Configure the bottom bar
         self.signUpTk = tk.BooleanVar(value=True)  # Variable to store if signing up or loging in
         self.userNameTk = tk.StringVar(); self.passwordTk = tk.StringVar()
 
@@ -78,11 +78,11 @@ class LoginSignup:
         else:
             self.passConfirmLabel.grid_forget(); self.passConfirmEntry.grid_forget()
 
-    def show_hide_pass(self, showPass: bool):
+    def show_hide_pass(self, show_pass: bool):
         """Procedure to show or hide password when button pressed"""
         for entry in filter(lambda e: type(e) is ttk.Entry and e.winfo_name() != 'username', self.inputFrame.winfo_children()):
-            entry.config(show='' if showPass else '*')
-        self.showHideButton['text'] = '*' if showPass else 'A'
+            entry.config(show='' if show_pass else '*')
+        self.showHideButton['text'] = '*' if show_pass else 'A'
 
     def confirm(self):
         """Procedure to check all inputs are valid before proceeding"""
@@ -124,8 +124,8 @@ class GameSettings:
     def __init__(self, frame: ttk.Frame) -> None:
         self.frame = frame
         self.bar_user = Bar.User()  # Add user options dropdown to bottom bar
-        self.bar_user.add()
-        #Preset difficulty options
+        self.bar_user.add(col=1)
+        # Preset difficulty options
         self.diffs = {'easy': (3, 15, 4), 'normal': (4, 10, 8), 'hard': (6, 8, 10), 'custom': (6, 11, 6)}
 
     def create(self):
@@ -139,7 +139,7 @@ class GameSettings:
         difficultiesFrame.grid(column=0, row=1, padx=10, pady=(10, 10))
         self.difficultyTk = tk.StringVar(value='normal')
         for name, num, color in zip(('easy', 'normal', 'hard', 'custom'), range(4), ('green', 'yellow', 'red', 'lightblue')):
-            ttk.Radiobutton(difficultiesFrame, text=name, variable=self.difficultyTk, value=name, style=f'{color}.Toolbutton', command=lambda n=name: self.selectDiff(n)).grid(column=num, row=0, padx=(10,0) if num==0 else (0,10) if num==3 else 0, pady=10)
+            ttk.Radiobutton(difficultiesFrame, text=name, variable=self.difficultyTk, value=name, style=f'{color}.Toolbutton', command=lambda n=name: self.selectDiff(n)).grid(column=num, row=0, padx=(10, 0) if num==0 else (0, 10) if num==3 else 0, pady=10)
 
         # Sliders to show and configure difficulty options
         sliderFrame = ttk.Frame(difficultiesFrame); sliderFrame.grid(column=0, row=2, columnspan=4)
@@ -155,7 +155,7 @@ class GameSettings:
         modeDescriptionLabel = ttk.Label(modeFrame, justify='center')
         modeDescriptionLabel.grid(column=0, row=1, columnspan=3, pady=10)
         for id, color, num in zip(('classic', 'timed', 'memory'), ('yellow', 'lightblue', 'red'), range(3)):
-            ttk.Radiobutton(modeFrame, text=id, value=id, variable=self.modeTk, style=f'{color}.Toolbutton', command=lambda mdl=modeDescriptionLabel: mdl.configure(text=self.modeDescriptions[self.modeTk.get()])).grid(column=num, row=0, padx=(10,0) if num==0 else (0,10) if num==2 else 0, pady=(5,0))
+            ttk.Radiobutton(modeFrame, text=id, value=id, variable=self.modeTk, style=f'{color}.Toolbutton', command=lambda mdl=modeDescriptionLabel: mdl.configure(text=self.modeDescriptions[self.modeTk.get()])).grid(column=num, row=0, padx=(10, 0) if num == 0 else (0,10) if num == 2 else 0, pady=(5, 0))
         modeFrame.grid(column=0, row=3, padx=10, pady=(0, 10))
         root.update()
         modeDescriptionLabel['wraplength'] = modeFrame.winfo_width()
@@ -215,9 +215,9 @@ class Game:
         self.guess = ['' for _ in range(codeLength)]
         self.boardData = []; self.scoreData = []
         # Configure bottom bar
-        self.bar_restart = Bar.Restart(); self.bar_restart.add()
-        self.bar_user = Bar.User(); self.bar_user.add()
-        self.bar_finish = Bar.Finish(); self.bar_finish.add()
+        self.bar_restart = Bar.Restart(); self.bar_restart.add(0)
+        self.bar_user = Bar.User(); self.bar_user.add(1)
+        self.bar_finish = Bar.Finish(); self.bar_finish.add(2)
 
     def create(self):
         """Procedure to create this window"""
@@ -269,35 +269,35 @@ class Game:
             if not done: root.after(1000, timer)
 
         # Set up past guesses board
-        historyFrame = ttk.Frame(self.frame)
-        historyFrame.grid(column=0, row=0, sticky='SW')
+        history_frame = ttk.Frame(self.frame)
+        history_frame.grid(column=0, row=0, sticky='SW')
         for rw in range(shots-1):  # Make sure all the rows have extra space between them
-            historyFrame.rowconfigure(index=rw, minsize=self.boardParts['space_blank'].height() + self.spacing)
+            history_frame.rowconfigure(index=rw, minsize=self.boardParts['space_blank'].height() + self.spacing)
 
         self.historyColours = [[] for _ in range(shots)]  # 2D array for image labels for past guesses
         self.historyScores = [[] for _ in range(shots)]  # 2D array for image labels for past scores 
         for rw in range(shots):  # Add each row in the past history board
             for col in range(codeLength):  # Create and place each image label in the history board
-                ttk.Label(historyFrame, image=self.boardParts['space_blank']).grid(row=rw, column=col, sticky='NW')
-                self.historyColours[-(rw+1)].append(ttk.Label(historyFrame, image=self.boardParts['color_blank']))
+                ttk.Label(history_frame, image=self.boardParts['space_blank']).grid(row=rw, column=col, sticky='NW')
+                self.historyColours[-(rw+1)].append(ttk.Label(history_frame, image=self.boardParts['color_blank']))
                 self.historyColours[-(rw+1)][-1].grid(row=rw, column=col, pady=(self.spacing*2, 0), padx=(self.spacing*2,0), sticky='NW')
 
             # Create and place the scores labels as well as the background shapes 
             curCol = col + 1
-            ttk.Label(historyFrame, image=self.boardParts['mark_leftEnd']).grid(row=rw, column=curCol, sticky='NW'); curCol += 1
+            ttk.Label(history_frame, image=self.boardParts['mark_leftEnd']).grid(row=rw, column=curCol, sticky='NW'); curCol += 1
             markCols = int(round((codeLength+0.1)/2, 0))
             for markCol in range(markCols):
-                ttk.Label(historyFrame, image=self.boardParts['mark_blankSpaces']).grid(row=rw, column=curCol, sticky='NW')
-                self.historyScores[-(rw+1)].append(ttk.Label(historyFrame, image=self.boardParts['mark_blank']))
+                ttk.Label(history_frame, image=self.boardParts['mark_blankSpaces']).grid(row=rw, column=curCol, sticky='NW')
+                self.historyScores[-(rw+1)].append(ttk.Label(history_frame, image=self.boardParts['mark_blank']))
                 self.historyScores[-(rw+1)][-1].grid(row=rw, column=curCol, pady=(self.spacing*2, 0), sticky='NW')
                 if markCol < markCols-1 or codeLength % 2 == 0:
-                    self.historyScores[-(rw+1)].append(ttk.Label(historyFrame, image=self.boardParts['mark_blank']))
+                    self.historyScores[-(rw+1)].append(ttk.Label(history_frame, image=self.boardParts['mark_blank']))
                     self.historyScores[-(rw+1)][-1].grid(column=curCol, row=rw, pady=(self.spacing*5, 0), sticky='NW')
                 if markCol < markCols-1:
                     curCol += 1
-                    ttk.Label(historyFrame, image=self.boardParts['mark_spacer']).grid(row=rw, column=curCol, sticky='NW')
+                    ttk.Label(history_frame, image=self.boardParts['mark_spacer']).grid(row=rw, column=curCol, sticky='NW')
                 curCol += 1
-            ttk.Label(historyFrame, image=self.boardParts['mark_rightEnd']).grid(row=rw, column=curCol, sticky='NW')
+            ttk.Label(history_frame, image=self.boardParts['mark_rightEnd']).grid(row=rw, column=curCol, sticky='NW')
 
         # Add spacing between the history board and current guess board
         self.frame.rowconfigure(2, minsize=self.spacing*2)
@@ -315,13 +315,13 @@ class Game:
             # Add the spaces that can be clicked to select that space
             self.optionColours.append(ttk.Label(self.optionsFrame, image=self.boardParts['color_blank'], cursor='tcross'))
             self.optionColours[-1].bind("<Button-1>", lambda event, num=option: self.space_selected(num))
-            self.optionColours[-1].grid(column=option, row=0, pady=(self.spacing*2, 0), padx=(self.spacing*2,0), sticky='NW')
+            self.optionColours[-1].grid(column=option, row=0, pady=(self.spacing*2, 0), padx=(self.spacing*2, 0), sticky='NW')
 
         # Add the confirm button that can be clicked once all the spaces are filled in
         ttk.Label(self.optionsFrame, image=self.boardParts['mark_leftEnd']).grid(column=option+1, row=0, sticky='NW')
-        confirmLabel = ttk.Label(self.optionsFrame, image=self.boardParts['space_confirmed'], cursor='center_ptr')
-        confirmLabel.bind("<Button-1>", lambda event: self.confirm_choice())
-        confirmLabel.grid(column=option+2, row=0)
+        confirm_label = ttk.Label(self.optionsFrame, image=self.boardParts['space_confirmed'], cursor='center_ptr')
+        confirm_label.bind("<Button-1>", lambda event: self.confirm_choice())
+        confirm_label.grid(column=option+2, row=0)
         ttk.Label(self.optionsFrame, image=self.boardParts['mark_rightEnd']).grid(column=option+3, row=0)
 
         # Bind the number keys to the colors, the enter key to the confirm button, and the return key to move the slected space back one
@@ -421,7 +421,7 @@ class Game:
         done = True
         ttk.Label(self.infoFrame, image=messageImgs[f'you{"Won" if correct else "Lost"}'], padding=0).grid(column=0, row=4, pady=20)
         if not correct:  # Show the correct code
-            ttk.Label(self.infoFrame, text='Correct Code:').grid(column=0, row=5, pady=(0,10))
+            ttk.Label(self.infoFrame, text='Correct Code:').grid(column=0, row=5, pady=(0, 10))
             self.correctFrame = ttk.Frame(self.infoFrame)
             self.correctFrame.grid(column=0, row=6)
             for i, c in enumerate(self.correctCode):
@@ -441,8 +441,8 @@ class Table:
     def __init__(self, frame: ttk.Frame, won: bool) -> None:
         self.frame = frame
         self.won = won
-        self.bar_restart = Bar.Restart(); self.bar_restart.add()
-        self.bar_user = Bar.User(); self.bar_user.add()
+        self.bar_restart = Bar.Restart(); self.bar_restart.add(0)
+        self.bar_user = Bar.User(); self.bar_user.add(1)
 
     def create(self):
         """Procedure to create this window"""
@@ -456,7 +456,7 @@ class Table:
         self.data = AHsa.insertion_sort(self.data, lambda l: l[3], False)
 
         # Create table based on tkinter's treeview widget
-        self.tree = ttk.Treeview(tableFrame, columns=('username', 'score', 'date', 'time'), show='headings', displaycolumns='# all', selectmode='none', height=10)
+        self.tree = ttk.Treeview(tableFrame, columns=('username', 'score', 'date', 'time'), show='headings', displaycolumns='#all', selectmode='none', height=10)
         for i, h in enumerate(('username', 'score', 'date', 'time')):
             self.tree.heading(i, text=h, anchor=tk.W)
             self.tree.column(i, stretch=True, width=400 if i == 0 else 200)
@@ -468,18 +468,18 @@ class Table:
         self.tree.configure(yscroll=self.scrollbar.set)
 
         # filers to choose a difficulty and mode
-        filterFrame = ttk.Labelframe(self.frame, text='Filter', borderwidth=5, relief='solid')
-        filterFrame.grid(column=0, row=0, padx=10, sticky='ns')
-        ttk.Label(filterFrame, text='Difficulty', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=0, sticky='ew')
+        filter_frame = ttk.Labelframe(self.frame, text='Filter', borderwidth=5, relief='solid')
+        filter_frame.grid(column=0, row=0, padx=10, sticky='ns')
+        ttk.Label(filter_frame, text='Difficulty', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=0, sticky='ew')
         diffs = ['easy', 'normal', 'hard', 'custom']
         self.diff = tk.StringVar(value=difficulty)
         for i, color in enumerate(('green', 'yellow', 'red', 'lightblue')):
-            ttk.Radiobutton(filterFrame, value=diffs[i], variable=self.diff, text=diffs[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=1+i, pady=(5,0), sticky='W')
-        ttk.Label(filterFrame, text='Mode', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=5, pady=(10, 0), sticky='ew')
+            ttk.Radiobutton(filter_frame, value=diffs[i], variable=self.diff, text=diffs[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=1+i, pady=(5, 0), sticky='W')
+        ttk.Label(filter_frame, text='Mode', font=('QuinqueFive'), background=darkBlue, padding=10).grid(column=0, row=5, pady=(10, 0), sticky='ew')
         modes = ['classic', 'timed', 'memory']
         self.mode = tk.StringVar(value=mode)
         for i, color in enumerate(('yellow', 'red', 'lightblue')):
-            ttk.Radiobutton(filterFrame, value=modes[i], variable=self.mode, text=modes[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=6+i, pady=(5, 0), sticky='W')
+            ttk.Radiobutton(filter_frame, value=modes[i], variable=self.mode, text=modes[i], style=f'{color}.TRadiobutton', command=self.addItems).grid(column=0, row=6+i, pady=(5, 0), sticky='W')
 
         self.addItems()  # Add initial data to the table
 
@@ -499,21 +499,25 @@ class Table:
 
 class Bar(ttk.Frame):
     """Class for bar at bottom of window"""
-    class Welcome:
+
+    class Functions:
+        def add(self: ttk.Label, col, **params):
+            self.grid(column=col, row=0, sticky='ns', **params)
+        def remove(self: ttk.Label):
+            self.grid_forget()
+
+    class Welcome(ttk.Label, Functions):
         """Welcome label on log in screen"""
         def __init__(self) -> None:
-            self.label = ttk.Label(bottomBar, text='Welcome to Mastermind!', font='QuinqueFive', background=darkBlue)
+            super().__init__(bottomBar, text='Welcome to Mastermind!', font='QuinqueFive', background=darkBlue)
 
-        add = lambda self: self.label.grid(column=1, row=0, pady=10, sticky='ns')  # Add this widget
-        remove = lambda self: self.label.grid_forget()  # Remove this widget
-
-    class User:
+    class User(ttk.Menubutton, Functions):
         """User profile dropdown for after the user has logged in"""
         def __init__(self) -> None:
-            self.userProfile = ttk.Menubutton(bottomBar, text='User Profile', direction='above', style='dark.TButton', padding=9)
-            self.userMenu = tk.Menu(self.userProfile, tearoff=False)
+            super().__init__(bottomBar, text='User Profile', direction='above', style='dark.TButton', padding=9)
+            self.userMenu = tk.Menu(self, tearoff=False)
             self.passChangeFrame = ttk.Frame(root)
-            self.userProfile['menu'] = self.userMenu
+            self['menu'] = self.userMenu
             # Add drop down menu options 
             for i, c in zip(('Log out', 'Change Password'), (self.logout, self.change_pass)):
                 self.userMenu.add_command(label=i, background=darkBlue, activebackground=fgYellow, foreground=fgYellow, activeforeground=darkBlue, font=('QuinqueFive'), command=c)
@@ -574,32 +578,24 @@ class Bar(ttk.Frame):
             database.execute(f"DELETE FROM User WHERE username = ?;", [userName])
             self.logout()
 
-        add = lambda self: self.userProfile.grid(column=1, row=0, sticky='ns')  # Add this menu
-        remove = lambda self: self.userProfile.grid_forget()  # Remove this menu
-
-    class Restart:
+    class Restart(ttk.Button, Functions):
         """Button on bottom bar to restart game"""
         def __init__(self) -> None:
-            self.button = ttk.Button(bottomBar, text='Restart', style='dark.TButton', command=self.activate)
+            super().__init__(bottomBar, text='Restart', style='dark.TButton', command=self.activate)
         def activate(self):
             global done, window
             self.remove(); done = True
             window.remove(); window = GameSettings(mainFrame); window.create()
 
-        add = lambda self: self.button.grid(column=0, row=0, sticky='ns')  # Add this button
-        remove = lambda self: self.button.grid_forget()  # Remove this button
-
-    class Finish:
+    class Finish(ttk.Button, Functions):
         """Button on bottom bar to finish game"""
         def __init__(self) -> None:
-            self.button = ttk.Button(bottomBar, text='Finnish', style='dark.TButton', command=self.activate)
+            super().__init__(bottomBar, text='Finnish', style='dark.TButton', command=self.activate)
         def activate(self):
             global done, window
             self.remove(); done = True
             window.finished(False)
 
-        add = lambda self: self.button.grid(column=2, row=0, sticky='ns')  # Add this button
-        remove = lambda self: self.button.grid_forget()  # Remove this button
 
 # Set constants for hex colors that are used throughout the program
 bgBlue = '#2a2aff'; fgYellow = '#ffcc00'; darkBlue='#000080'
