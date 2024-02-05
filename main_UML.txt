@@ -1,0 +1,102 @@
+@startuml
+class LoginSignup {
+    create()
+    switch_login_sign_up()
+    show_hide_pass()
+    confirm()
+    remove()
+        frame
+    signUpTk
+    userNameTk
+    inputFrame
+    passConfirmLabel
+    passConfirmEntry
+    showHideButton
+    __init__()
+}
+class GameSettings {
+    create()
+    selectDiff()
+    checkbutton()
+    play()
+    remove()
+        frame
+    codeLengthTk
+    shotsTk
+    colorAmountTk
+    difficultyTk
+    modeTk
+    errorLabel
+    __init__()
+}
+class Game {
+    create()
+    timer()
+    get_score()
+    space_selected()
+    color_selected()
+    confirm_choice()
+    insert_all()
+    finished()
+    next()
+    remove()
+        frame
+    duplicates
+    selectedPos
+    infoFrame
+    colorImgs
+    boardParts
+    spacing
+    correctCode
+    correctCode
+    optionsFrame
+    paletteFrame
+    selectedPos
+    prevSelected
+    correctFrame
+    __init__()
+}
+class Table {
+    create()
+    addItems()
+    remove()
+        frame
+    won
+    data
+    prev
+    data
+    tree
+    scrollbar
+    diff
+    mode
+    data
+    __init__()
+}
+class Bar {
+    add()
+    remove()
+    logout()
+    change_pass()
+    confirm()
+    show_hide()
+    delete_account()
+    activate()
+    activate()
+        welcome
+    user
+    restart
+    finish
+    userMenu
+    passChangeFrame
+    delMenu
+    inputFrame
+    passEntry
+    confirmEntry
+    showHideButton
+    errorFrame
+    __init__()
+}
+class App {
+        __init__()
+}
+@enduml

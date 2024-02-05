@@ -34,13 +34,13 @@ class LoginSignup:
     """First Window where the user can sign up or log in"""
     def __init__(self, frame: ttk.Frame):
         self.frame = frame
-        self.bar_welcome = Bar.Welcome(); self.bar_welcome.add(col=1, pady=10)  # Configure the bottom bar
+        bottomBar.welcome.add(1, pady=10)
         self.signUpTk = tk.BooleanVar(value=True)  # Variable to store if signing up or loging in
         self.userNameTk = tk.StringVar(); self.passwordTk = tk.StringVar()
 
     def create(self):
         """Procedure to create the window"""
-        root.state('normal')  # Make the window not full screen
+        app.state('normal')  # Make the window not full screen
         for r in ('Sign up', 'Log in'):  # Add the Sign-up and Log in options
             ttk.Radiobutton(self.frame, text=r, variable=self.signUpTk, value=(r == 'Sign up'), style='Toolbutton', command=self.switch_login_sign_up).grid(column=0 if (r == 'Sign up') else 1, row=0, pady=0, sticky='E' if (r == 'Sign up') else 'W')
 
@@ -66,7 +66,7 @@ class LoginSignup:
 
         # When Submit button or Enter Key pressed check fields are valid
         ttk.Button(self.frame, text='Submit', command=self.confirm).grid(column=0, row=4, columnspan=2, sticky='N')
-        root.bind('<Return>', lambda event: self.confirm())
+        app.bind('<Return>', lambda event: self.confirm())
 
     def switch_login_sign_up(self):
         """Procedure to hide/show password confirm label and text entry when mode switch"""
@@ -116,21 +116,20 @@ class LoginSignup:
 
     def remove(self):
         """Procedure to remove this window"""
-        self.bar_welcome.remove()  # clear bottom frame
+        bottomBar.welcome.remove()  # clear bottom frame
         clear(mainFrame)  # clear everything from window
 
 class GameSettings:
     """Window where game settings are chosen"""
     def __init__(self, frame: ttk.Frame) -> None:
         self.frame = frame
-        self.bar_user = Bar.User()  # Add user options dropdown to bottom bar
-        self.bar_user.add(col=1)
+        bottomBar.user.add(1)  # Add user options dropdown to bottom bar
         # Preset difficulty options
         self.diffs = {'easy': (3, 15, 4), 'normal': (4, 10, 8), 'hard': (6, 8, 10), 'custom': (6, 11, 6)}
 
     def create(self):
         """Procedure to create this window"""
-        root.state('normal')  # Make window not full screen
+        app.state('normal')  # Make window not full screen
         self.codeLengthTk = tk.IntVar(value=4)
         self.shotsTk = tk.IntVar(value=10)
         self.colorAmountTk = tk.IntVar(value=8)
@@ -157,7 +156,7 @@ class GameSettings:
         for id, color, num in zip(('classic', 'timed', 'memory'), ('yellow', 'lightblue', 'red'), range(3)):
             ttk.Radiobutton(modeFrame, text=id, value=id, variable=self.modeTk, style=f'{color}.Toolbutton', command=lambda mdl=modeDescriptionLabel: mdl.configure(text=self.modeDescriptions[self.modeTk.get()])).grid(column=num, row=0, padx=(10, 0) if num == 0 else (0,10) if num == 2 else 0, pady=(5, 0))
         modeFrame.grid(column=0, row=3, padx=10, pady=(0, 10))
-        root.update()
+        app.update()
         modeDescriptionLabel['wraplength'] = modeFrame.winfo_width()
         modeDescriptionLabel['text'] = self.modeDescriptions['classic']
 
@@ -175,7 +174,7 @@ class GameSettings:
 
         # Add confirm button and bind return key to check settings are valid and go to next screen using self.play() function 
         ttk.Button(self.frame, image=messageImgs['play'], style='img.TButton', padding=0, command=self.play).grid(column=0, row=6)
-        root.bind('<Return>', lambda event: self.play())
+        app.bind('<Return>', lambda event: self.play())
         self.errorLabel = ttk.Label(self.frame, text='If duplicates not allowed colors must be >= length', wraplength=difficultiesFrame.winfo_width(), style='warning.TLabel', justify='center')
 
     def selectDiff(self, diff:str) -> None:
@@ -204,7 +203,8 @@ class GameSettings:
             window = Game(mainFrame, self.duplicatesAllowed[0], self.cbMode[0])  # Set current window to game window
             window.create()  # Create game window
 
-    remove = lambda self: [clear(mainFrame), self.bar_user.remove()]  # Function to remove this window
+    def remove(self):
+        clear(mainFrame); bottomBar.user.remove() # Function to remove this window
 
 class Game:
     """Window where main game is played"""
@@ -215,13 +215,11 @@ class Game:
         self.guess = ['' for _ in range(codeLength)]
         self.boardData = []; self.scoreData = []
         # Configure bottom bar
-        self.bar_restart = Bar.Restart(); self.bar_restart.add(0)
-        self.bar_user = Bar.User(); self.bar_user.add(1)
-        self.bar_finish = Bar.Finish(); self.bar_finish.add(2)
+        bottomBar.restart.add(0); bottomBar.user.add(1); bottomBar.finish.add(2)
 
     def create(self):
         """Procedure to create this window"""
-        root.state('zoomed')  # Make window full screen
+        app.state('zoomed')  # Make window full screen
         global timeShots, timerShotsLabel, window, done
 
         # Add welcome text, current difficulty, mode and shots taken / time taken so far
@@ -233,13 +231,13 @@ class Game:
         ttk.Label(self.infoFrame, text=f'Mode: {mode}').grid(column=0, row=2, pady=(0, 20))
         timerShotsLabel = ttk.Label(self.infoFrame, text=f'{"Timer: 0:00" if mode == "timed" else "Shots used: 0"}' + (f"/{shots}" if mode == 'classic' else ""))
         timerShotsLabel.grid(column=0, row=3, pady=(0, 10))
-        root.update()
+        app.update()
 
         # Find the scale so everything fits on the screen and load the images at that scale
         totalHeight = (shots+1)*100 + messageImgs['mastermind'].height()
         totalWidth = 80 + 90*codeLength + int(round((codeLength+0.1)/2, 0))*20 + (int(round((codeLength+0.1)/2, 0))-1)*10
-        screenHeight = root.winfo_height() - bottomBar.winfo_height()
-        screenWidth = root.winfo_width() - self.infoFrame.winfo_height()
+        screenHeight = app.winfo_height() - bottomBar.winfo_height()
+        screenWidth = app.winfo_width() - self.infoFrame.winfo_height()
         scale = round(min([(screenHeight) / (totalHeight+135), (screenWidth) / totalWidth, 1]), 2)
         self.colorImgs = load_images(f'Images/{"colorBlind" if self.colorBlind else "colors"}', scale)
         self.boardParts = load_images('Images/board', scale)
@@ -265,8 +263,8 @@ class Game:
                 if not done:
                     timeShots += 1
                     timerShotsLabel['text'] = f'Timer: {timeShots//60}:{timeShots%60:02d}'
-                    root.after(1000, timer)
-            if not done: root.after(1000, timer)
+                    app.after(1000, timer)
+            if not done: app.after(1000, timer)
 
         # Set up past guesses board
         history_frame = ttk.Frame(self.frame)
@@ -326,9 +324,9 @@ class Game:
 
         # Bind the number keys to the colors, the enter key to the confirm button, and the return key to move the slected space back one
         for key in (range(colorAmount) if colorAmount < 10 else list(range(colorAmount))+[-1]):
-            root.bind(f'{key+1}', lambda event, k=key: self.color_selected(self.colorOrder[k]))
-        root.bind('<Return>', lambda event: self.confirm_choice())
-        root.bind('<BackSpace>', lambda event: self.space_selected(self.selectedPos - 1 if self.selectedPos != 0 else codeLength - 1))
+            app.bind(f'{key+1}', lambda event, k=key: self.color_selected(self.colorOrder[k]))
+        app.bind('<Return>', lambda event: self.confirm_choice())
+        app.bind('<BackSpace>', lambda event: self.space_selected(self.selectedPos - 1 if self.selectedPos != 0 else codeLength - 1))
 
         # Create pallete of available colors 
         self.paletteFrame = ttk.Frame(self.frame)
@@ -414,10 +412,10 @@ class Game:
             window = Table(mainFrame, correct)
             window.create()
 
-        [root.unbind(key) for key in root.bind()]  # Remove all key bindings
+        [app.unbind(key) for key in app.bind()]  # Remove all key bindings
         if correct: database.add_score(userName, mode, difficulty, timeShots)
         timerShotsLabel.destroy()
-        self.bar_finish.remove()
+        bottomBar.finish.remove()
         done = True
         ttk.Label(self.infoFrame, image=messageImgs[f'you{"Won" if correct else "Lost"}'], padding=0).grid(column=0, row=4, pady=20)
         if not correct:  # Show the correct code
@@ -433,20 +431,19 @@ class Game:
 
     def remove(self):
         """Remove this window"""
-        self.bar_restart.remove(); self.bar_user.remove(); self.bar_finish.remove()
-        clear(mainFrame); [root.unbind(key) for key in root.bind()]
+        bottomBar.restart.remove(); bottomBar.user.remove(); bottomBar.finish.remove()
+        clear(mainFrame); [app.unbind(key) for key in app.bind()]
 
 class Table:
     """Window where you can view scores"""
     def __init__(self, frame: ttk.Frame, won: bool) -> None:
         self.frame = frame
         self.won = won
-        self.bar_restart = Bar.Restart(); self.bar_restart.add(0)
-        self.bar_user = Bar.User(); self.bar_user.add(1)
+        bottomBar.restart.add(0); bottomBar.user.add(1)
 
     def create(self):
         """Procedure to create this window"""
-        root.state('normal')  # Set the window to not full screen mode
+        app.state('normal')  # Set the window to not full screen mode
         tableFrame = ttk.Labelframe(self.frame, text='Scores', borderwidth=5, relief='solid')
         tableFrame.grid(column=1, row=0, sticky='N', padx=(0, 10))
         # Get all past scores from database with same settings as last game
@@ -494,29 +491,36 @@ class Table:
 
     def remove(self):
         """Remove this window"""
-        self.bar_restart.remove(); self.bar_user.remove()
+        bottomBar.restart.remove(); bottomBar.user.remove()
         clear(mainFrame)
 
 class Bar(ttk.Frame):
     """Class for bar at bottom of window"""
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.welcome = self.Welcome(self)
+        self.user = self.User(self)
+        self.restart = self.Restart(self)
+        self.finish = self.Finish(self)
 
     class Functions:
-        def add(self: ttk.Label, col, **params):
+        """Functions to add and remove parts of the bottom bar"""
+        def add(self: ttk.Label, col: int, **params):
             self.grid(column=col, row=0, sticky='ns', **params)
         def remove(self: ttk.Label):
             self.grid_forget()
 
     class Welcome(ttk.Label, Functions):
         """Welcome label on log in screen"""
-        def __init__(self) -> None:
-            super().__init__(bottomBar, text='Welcome to Mastermind!', font='QuinqueFive', background=darkBlue)
+        def __init__(self, master) -> None:
+            super().__init__(master, text='Welcome to Mastermind!', font='QuinqueFive', background=darkBlue)
 
     class User(ttk.Menubutton, Functions):
         """User profile dropdown for after the user has logged in"""
-        def __init__(self) -> None:
-            super().__init__(bottomBar, text='User Profile', direction='above', style='dark.TButton', padding=9)
+        def __init__(self, master) -> None:
+            super().__init__(master, text='User Profile', direction='above', style='dark.TButton', padding=9)
             self.userMenu = tk.Menu(self, tearoff=False)
-            self.passChangeFrame = ttk.Frame(root)
+            self.passChangeFrame = ttk.Frame(app)
             self['menu'] = self.userMenu
             # Add drop down menu options 
             for i, c in zip(('Log out', 'Change Password'), (self.logout, self.change_pass)):
@@ -580,8 +584,8 @@ class Bar(ttk.Frame):
 
     class Restart(ttk.Button, Functions):
         """Button on bottom bar to restart game"""
-        def __init__(self) -> None:
-            super().__init__(bottomBar, text='Restart', style='dark.TButton', command=self.activate)
+        def __init__(self, master) -> None:
+            super().__init__(master, text='Restart', style='dark.TButton', command=self.activate)
         def activate(self):
             global done, window
             self.remove(); done = True
@@ -589,90 +593,100 @@ class Bar(ttk.Frame):
 
     class Finish(ttk.Button, Functions):
         """Button on bottom bar to finish game"""
-        def __init__(self) -> None:
-            super().__init__(bottomBar, text='Finnish', style='dark.TButton', command=self.activate)
+        def __init__(self, master) -> None:
+            super().__init__(master, text='Finnish', style='dark.TButton', command=self.activate)
         def activate(self):
             global done, window
             self.remove(); done = True
             window.finished(False)
 
 
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        # Create main window
+        self.title('Mastermind'); self.config(bg=bgBlue)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(9, weight=1)
+
+
+database = DBf.Database('gameData.db')  # Connect to database
+database.create_tables()  # Create empty database if one doesn't already exist
 # Set constants for hex colors that are used throughout the program
-bgBlue = '#2a2aff'; fgYellow = '#ffcc00'; darkBlue='#000080'
-# Create main window
-root = tk.Tk(); root.title('Mastermind'); root.config(bg=bgBlue)
-root.columnconfigure(0, weight=1)
-root.iconbitmap('Images/logo.ico')  # Set the window icon
-messageImgs = load_images('Images/messages', 0.5)  # Load some images like the mastermind text logo
+bgBlue = '#2a2aff'; fgYellow = '#ffcc00'; darkBlue = '#000080'
 
-# Define the style settings to be used by each corresponding tkinter themed widget
-mainStyle = ttk.Style(); mainStyle.theme_use('classic')
-mainStyle.theme_settings('classic', {
-    '.': {
-        'configure': {'font': ('QuinqueFive', 20), 'foreground': fgYellow, 'background': bgBlue, 'borderwidth': 0, 'relief': 'solid', 'highlightthickness': 0}},
-    'dark.TFrame': {
-        'configure': {'background': darkBlue}},
-    'Toolbutton': {
-        'configure': {'background': bgBlue, 'activebackground': darkBlue, 'borderwidth': 0, 'padding': (20, 10, 20, 10)},
-        'map': {'background': [('selected', darkBlue), ('active', darkBlue), ('!selected', bgBlue)]}},
-    'TEntry': {
-        'configure': {'fieldbackground': darkBlue, 'insertcolor': fgYellow, 'insertwidth': 5, 'highlightthickness': 5, 'selectbackground': fgYellow, 'selectforeground': darkBlue, 'selectborderwidth': 0},
-        'map': {'highlightcolor': [('focus', fgYellow), ('!focus', '#000000')]}},
-    'TButton': {
-        'configure': {'shiftrelief': 5},
-        'map': {'background': [('active', darkBlue)]}},
-    'dark.TButton': {
-        'configure': {'background': darkBlue, 'font': 'QuinqueFive'},
-        'map': {'background': [('active', bgBlue)]}},
-    'img.TButton': {
-        'map': {'background': [('active', bgBlue)]}},
-    'noShift.img.TButton': {
-        'configure': {'shiftrelief': 0}},
-    'warning.TLabel': {
-        'configure': {'foreground': '#ff0000', 'font': ('QuinqueFive', 15)}},
-    'TScale': {
-        'configure': {'relief': 'flat', 'sliderrelief': 'flat', 'sliderlength': 40, 'troughcolor': fgYellow, 'sliderthickness': 30},
-        'map': {'background': [('active', darkBlue), ('pressed', darkBlue)], 'sliderrelief': [('active', 'flat'), ('pressed', 'flat')]}},
-    'Treeview': {
-        'configure': {'rowheight': 40, 'font': ('QuinqueFive', 10), 'background': bgBlue, 'fieldbackground': bgBlue}},
-    'Treeview.Heading':{
-        'configure': {'background': darkBlue, 'padding': 10, 'font': 'QuinqueFive'},
-        'map': {'background': [('active', darkBlue)]}},
-    'TScrollbar': {
-        'configure': {'troughcolor': darkBlue, 'background': fgYellow, 'arrowsize': 20},
-        'map': {'background': [('active', fgYellow)]}},
-    'TRadiobutton': {
-        'map': {'background': [('active', bgBlue)]}}
-})
-mainStyle.element_create('custom.indicator', 'image', messageImgs['check_false'], ('selected', '!disabled', messageImgs['check_true']))
-mainStyle.layout(
-    'TRadiobutton',
-    [('Radiobutton.padding',
-    {'sticky': 'nswe',
-     'children': [('custom.indicator', {'side': 'left', 'sticky': ''}),
-                  ('Radiobutton.label', {'side': 'left', 'sticky': 'nsew'})]})])
+if __name__ == '__main__':
+    try:  # Start program in try statement so that the database connection will always be closed
+        app = App()  # Start main app
+        messageImgs = load_images('Images/messages', 0.5)  # Load some images like the mastermind text logo
 
-for hex, color in zip(('#ff0000', fgYellow, '#00ff00', '#2ad4ff'), ('red', 'yellow', 'green', 'lightblue')):
-    mainStyle.configure(f'{color}.Toolbutton', foreground=hex)
-for hex, color in zip(('#ff0000', fgYellow, '#00ff00', '#2ad4ff'), ('red', 'yellow', 'green', 'lightblue')):
-    mainStyle.configure(f'{color}.TRadiobutton', foreground=hex, font=('QuinqueFive', 10))
+        # Define the style settings to be used by each corresponding tkinter themed widget
+        mainStyle = ttk.Style()
+        mainStyle.theme_use('classic')
+        mainStyle.theme_settings('classic', {
+            '.': {
+                'configure': {'font': ('QuinqueFive', 20), 'foreground': fgYellow, 'background': bgBlue, 'borderwidth': 0, 'relief': 'solid', 'highlightthickness': 0}},
+            'dark.TFrame': {
+                'configure': {'background': darkBlue}},
+            'Toolbutton': {
+                'configure': {'background': bgBlue, 'activebackground': darkBlue, 'borderwidth': 0, 'padding': (20, 10, 20, 10)},
+                'map': {'background': [('selected', darkBlue), ('active', darkBlue), ('!selected', bgBlue)]}},
+            'TEntry': {
+                'configure': {'fieldbackground': darkBlue, 'insertcolor': fgYellow, 'insertwidth': 5, 'highlightthickness': 5, 'selectbackground': fgYellow, 'selectforeground': darkBlue, 'selectborderwidth': 0},
+                'map': {'highlightcolor': [('focus', fgYellow), ('!focus', '#000000')]}},
+            'TButton': {
+                'configure': {'shiftrelief': 5},
+                'map': {'background': [('active', darkBlue)]}},
+            'dark.TButton': {
+                'configure': {'background': darkBlue, 'font': 'QuinqueFive'},
+                'map': {'background': [('active', bgBlue)]}},
+            'img.TButton': {
+                'map': {'background': [('active', bgBlue)]}},
+            'noShift.img.TButton': {
+                'configure': {'shiftrelief': 0}},
+            'warning.TLabel': {
+                'configure': {'foreground': '#ff0000', 'font': ('QuinqueFive', 15)}},
+            'TScale': {
+                'configure': {'relief': 'flat', 'sliderrelief': 'flat', 'sliderlength': 40, 'troughcolor': fgYellow, 'sliderthickness': 30},
+                'map': {'background': [('active', darkBlue), ('pressed', darkBlue)], 'sliderrelief': [('active', 'flat'), ('pressed', 'flat')]}},
+            'Treeview': {
+                'configure': {'rowheight': 40, 'font': ('QuinqueFive', 10), 'background': bgBlue, 'fieldbackground': bgBlue}},
+            'Treeview.Heading': {
+                'configure': {'background': darkBlue, 'padding': 10, 'font': 'QuinqueFive'},
+                'map': {'background': [('active', darkBlue)]}},
+            'TScrollbar': {
+                'configure': {'troughcolor': darkBlue, 'background': fgYellow, 'arrowsize': 20},
+                'map': {'background': [('active', fgYellow)]}},
+            'TRadiobutton': {
+                'map': {'background': [('active', bgBlue)]}}
+        })
+        mainStyle.element_create('custom.indicator', 'image', messageImgs['check_false'],
+                                 ('selected', '!disabled', messageImgs['check_true']))
+        mainStyle.layout(
+            'TRadiobutton',
+            [('Radiobutton.padding',
+              {'sticky': 'nswe',
+               'children': [('custom.indicator', {'side': 'left', 'sticky': ''}),
+                            ('Radiobutton.label', {'side': 'left', 'sticky': 'nsew'})]})])
 
-# Add logo at top of window and option bar at bottom
-ttk.Label(root, image=messageImgs['mastermind']).grid(row=0, column=0, columnspan=2, pady=(0,10))
-root.rowconfigure(9, weight=1)
-bottomBar = Bar(root, style='dark.TFrame')
-bottomBar.grid(row=10, column=0, columnspan=10, sticky='ew', pady=(10, 0))
-bottomBar.columnconfigure(1, weight=1)
+        for hex, color in zip(('#ff0000', fgYellow, '#00ff00', '#2ad4ff'), ('red', 'yellow', 'green', 'lightblue')):
+            mainStyle.configure(f'{color}.Toolbutton', foreground=hex)
+        for hex, color in zip(('#ff0000', fgYellow, '#00ff00', '#2ad4ff'), ('red', 'yellow', 'green', 'lightblue')):
+            mainStyle.configure(f'{color}.TRadiobutton', foreground=hex, font=('QuinqueFive', 10))
 
-try:  # Start program in try statement so that the database connection will always be closed
-    database = DBf.Database('gameData.db')
-    database.create_tables()  # Create empty database if one doesn't already exist
-    mainFrame = ttk.Frame(root)
-    mainFrame.grid(row=1, column=0, sticky='n')
-    # Go to log in / sign up window to start
-    window = LoginSignup(mainFrame)
-    window.create()
-    windll.shcore.SetProcessDpiAwareness(1)  # Sets the window to the correct dpi scaling on the screen
-    root.mainloop()  # Start tkinter
-finally:
-    database.finish()  # Close database connection
+        app.iconbitmap('Images/logo.ico')  # Set the window icon
+        # Add logo at top of window and option bar at bottom
+        ttk.Label(app, image=messageImgs['mastermind']).grid(row=0, column=0, columnspan=2, pady=(0, 10))
+        mainFrame = ttk.Frame(app)
+        mainFrame.grid(row=1, column=0, sticky='n')
+        bottomBar = Bar(app, style='dark.TFrame')
+        bottomBar.grid(row=10, column=0, columnspan=10, sticky='ew', pady=(10, 0))
+        bottomBar.columnconfigure(1, weight=1)
+
+        # Go to log in / sign up window to start
+        window = LoginSignup(mainFrame)
+        window.create()
+        windll.shcore.SetProcessDpiAwareness(1)  # Sets the window to the correct dpi scaling on the screen
+        app.mainloop()  # Start tkinter
+    finally:
+        database.finish()  # Close database connection

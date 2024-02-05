@@ -1,0 +1,34 @@
+@startuml
+class Functions {
+    add()
+    remove()
+        __init__()
+}
+class Welcome {
+        __init__()
+}
+class User {
+    logout()
+    change_pass()
+    confirm()
+    show_hide()
+    delete_account()
+        userMenu
+    passChangeFrame
+    delMenu
+    inputFrame
+    passEntry
+    confirmEntry
+    showHideButton
+    errorFrame
+    __init__()
+}
+class Restart {
+    activate()
+        __init__()
+}
+class Finish {
+    activate()
+        __init__()
+}
+@enduml

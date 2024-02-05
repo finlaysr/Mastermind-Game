@@ -1,0 +1,128 @@
+@startuml
+class LoginSignup {
+    + create()
+    + switch_login_sign_up()
+    + show_hide_pass()
+    + confirm()
+    + remove()
+    + frame: ttk.Frame
+    + bar_welcome: Bar.Welcome
+    + signUpTk: tk.BooleanVar
+    + userNameTk: tk.StringVar
+    + inputFrame: ttk.Frame
+    + passConfirmLabel: ttk.Label
+    + passConfirmEntry: ttk.Entry
+    + showHideButton: ttk.Button
+    + __init__()
+}
+
+class GameSettings {
+    + create()
+    + selectDiff()
+    + checkbutton()
+    + play()
+    + frame: ttk.Frame
+    + bar_user: Bar.User
+    + codeLengthTk: tk.IntVar
+    + shotsTk: tk.IntVar
+    + colorAmountTk: tk.IntVar
+    + difficultyTk: tk.StringVar
+    + modeTk: tk.StringVar
+    + __init__()
+    + errorLabel: ttk.Label
+    + diffs: record
+}
+class Game {
+    + create()
+    + timer()
+    + get_score()
+    + space_selected()
+    + color_selected()
+    + confirm_choice()
+    + insert_all()
+    + finished()
+    + next()
+    + remove()
+    + frame: ttk.Frame
+    + duplicates: boolean
+    + selectedPos: intiger
+    + bar_restart: Bar.Restart
+    + bar_user: Bar.User
+    + bar_finish: Bar.Finish
+    + infoFrame: ttk.Frame
+    + colorImgs: record[string, Image]
+    + boardParts: record[string, Image]
+    + spacing: intiger
+    + colorOrder: array[string]
+    + correctCode: array[string]
+    + selectedPos: intiger
+    + prevSelected: intiger
+    + __init__()
+}
+class Table {
+    + create()
+    + addItems()
+    + remove()
+    + frame: ttk.Frame
+    + won: boolean
+    + bar_restart: Bar.Restart
+    + bar_user: Bar.User
+    + data: array[array]
+    + prev: array
+    + tree: ttk.Treeview
+    + scrollbar: ttk.Scrollbar
+    + diff: string
+    + mode: string
+    + __init__()
+}
+class Bar {
+}
+
+class Welcome {
+    add()
+    remove()
+        label
+    __init__()
+}
+Welcome --> Bar
+
+class User {
+    logout()
+    change_pass()
+    confirm()
+    show_hide()
+    delete_account()
+    add()
+    remove()
+        userProfile
+    userMenu
+    passChangeFrame
+    delMenu
+    inputFrame
+    passEntry
+    confirmEntry
+    showHideButton
+    errorFrame
+    __init__()
+}
+User --> Bar
+
+class Restart {
+    activate()
+    add()
+    remove()
+        button
+    __init__()
+}
+Restart --> Bar
+
+class Finish {
+    activate()
+    add()
+    remove()
+        button
+    __init__()
+}
+Finish --> Bar
+
+@enduml
